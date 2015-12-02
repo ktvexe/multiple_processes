@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -22,7 +23,6 @@ int main(int argc,char *argv[]){
 	char *readbuf,*addbuf,*readbuf_end,*newbuf;
 	char* search;
 	long len=strlen(argv[2]);
-	printf("len:%ld",len);
 	//check input
 	if(argc !=4){
 		perror("Input error!!");
@@ -37,13 +37,10 @@ int main(int argc,char *argv[]){
 	//check size of file
 	fseek(fptr,0,SEEK_END);
 	size =ftell(fptr);
-	printf( "size: %ld\n" , size );
 	//share file to process
 	pnum = strtol(argv[3],NULL,10);	
 	share_size = size / pnum;
 	remain = size % pnum;
-	printf("share_size :%ld\n",share_size);
-	printf("remain :%ld\n",remain);
 	
 	//get share memory
 	shmid = shmget(IPC_PRIVATE, SIZE, IPC_CREAT|0600 ) ;
@@ -64,7 +61,7 @@ int main(int argc,char *argv[]){
 			int count=0;
 			//shared memory
 			shmaddr = (char *)shmat( shmid, NULL, 0 ) ;
-     		if ( (int)shmaddr == -1 ){
+     		if ( (intptr_t)shmaddr == -1 ){
         	    perror("shmat addr error") ;
            		return -1 ;
         	}
@@ -74,7 +71,7 @@ int main(int argc,char *argv[]){
 				fread(readbuf,sizeof(char),share_size,fptr);
 				fread(readbuf_end,sizeof(char),remain,fptr);
 //				printf("readbuf:%s",readbuf);
-				printf("%s\n",readbuf_end);
+//				printf("%s\n",readbuf_end);
 				newbuf = (char*)malloc((share_size+remain)*sizeof(char));
 				strcpy(newbuf,readbuf);
 				strcat(newbuf,readbuf_end);
@@ -137,7 +134,7 @@ int main(int argc,char *argv[]){
 	}
 
 	shmaddr = (char *)shmat( shmid, shmaddr, 0 ) ;
-    if ( (int)shmaddr == -1 ){
+    if ( (intptr_t)shmaddr == -1 ){
     	perror("shmat addr error") ;
         return -1 ;
     }
