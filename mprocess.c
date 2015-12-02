@@ -1,3 +1,11 @@
+/*
+*multiple processes program v1.0
+*
+*used to search word by child process 
+*
+*@author LG Liu
+*@link https://github.com/ktvexe/multiple_processes/blob/master/mprocess.c
+*/
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -57,7 +65,6 @@ int main(int argc,char *argv[]){
 	for( i = 0;i<pnum;i++){
 		//child process work
 		if(!( pids[i]= vfork())){
-	//		printf("child:%d\n",i);
 			int count=0;
 			//shared memory
 			shmaddr = (char *)shmat( shmid, NULL, 0 ) ;
@@ -70,11 +77,10 @@ int main(int argc,char *argv[]){
 			if(i==(pnum-1)){
 				fread(readbuf,sizeof(char),share_size,fptr);
 				fread(readbuf_end,sizeof(char),remain,fptr);
-//				printf("readbuf:%s",readbuf);
-//				printf("%s\n",readbuf_end);
 				newbuf = (char*)malloc((share_size+remain)*sizeof(char));
 				strcpy(newbuf,readbuf);
 				strcat(newbuf,readbuf_end);
+			//count searched word	
 				while(1){
 					search=strstr(newbuf,argv[2]);
 					if(strstr(newbuf,argv[2])){
@@ -84,7 +90,6 @@ int main(int argc,char *argv[]){
 					else
 						break;
 				}
-//				printf("count:%d\n",count);
         		char countc[10];
 				sprintf(countc,"%d ",count);
 				strcat( shmaddr,countc ) ;
@@ -92,28 +97,14 @@ int main(int argc,char *argv[]){
 			}
 			//normal process
 			else{
-//				printf("fptr-o:%p\n",fptr);
-/*				if(i!=0){
-					fread(readbuf,sizeof(char),share_size,fptr-len);
-				}
-				else
-*/				fread(readbuf,sizeof(char),share_size,fptr);
-//				printf("fptr-o1:%p\n",fptr);
+				fread(readbuf,sizeof(char),share_size,fptr);
 				pos = ftell(fptr);
 				fread(addbuf,sizeof(char),len,fptr);
-//				printf("position:%ld",ftell(fptr));
-//				printf("readbuf:%s\n",readbuf);
-//				printf("readbuf:%s\n",addbuf);
 				fseek(fptr,pos,SEEK_SET);
-//				printf("fptr-o2:%p\n",fptr);
 				newbuf = (char*)malloc((share_size+len)*sizeof(char));
 				strcpy(newbuf,readbuf);
 				strcat(newbuf,addbuf);
-//				printf("a\n");
-				//fptr -=len;
-//				printf("fptr-f:%p\n",fptr);
-//				printf("b\n");
-				
+			//count searched word	
 				while(1){
 					search=strstr(newbuf,argv[2]);
 					if(strstr(newbuf,argv[2])){
@@ -123,7 +114,6 @@ int main(int argc,char *argv[]){
 					else
 						break;
 				}
-//				printf("count:%d\n",count);
         		char countc[10];
 				sprintf(countc,"%d ",count);
 				strcat( shmaddr,countc ) ;
@@ -148,6 +138,9 @@ int main(int argc,char *argv[]){
 	shmdt(shmaddr);
 	shmctl(shmid,IPC_RMID,NULL);
 	fclose(fptr);
+	free(readbuf);
+	free(addbuf);
+	free(readbuf_end);
     return 0 ;
 
 }
